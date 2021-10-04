@@ -13,7 +13,7 @@ public class NotificationView {
     private Long id;
 
     @NotBlank
-    private String app;
+    private String type;
 
     @NotBlank
     private String action;
@@ -21,7 +21,7 @@ public class NotificationView {
     NotificationEvent toEvent(){
         return NotificationEvent.builder()
                 .id(id)
-                .app(app)
+                .type(type)
                 .action(action)
                 .build();
     }

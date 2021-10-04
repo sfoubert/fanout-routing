@@ -18,15 +18,15 @@ spring:
       bindings:
         notification-producer-out-0.destination: notification_topic
         routing-processor-in-0.destination: notification_topic
-        routing-processor-out-0.destination: app1_topic
-        routing-processor-out-1.destination: app2_topic
-        routing-processor-out-2.destination: app3_topic
+        routing-processor-out-0.destination: event1_topic
+        routing-processor-out-1.destination: event2_topic
+        routing-processor-out-2.destination: event3_topic
         routing-processor-out-3.destination: notification_topic_dlq
-        app1-in-0.destination: app1_topic
-        app1-in-0.group: app1
-        app2-in-0.destination: app2_topic
-        app2-in-0.group: app2
-        app3-in-0.destination: app3_topic
-        app3-in-0.group: app3
+        event1-in-0.destination: event1_topic
+        event1-in-0.group: event1
+        event2-in-0.destination: event2_topic
+        event2-in-0.group: event2
+        event3-in-0.destination: event3_topic
+        event3-in-0.group: event3
     function:
-      definition: notification-producer;routing-processor;app1;app2;app3
+      definition: notification-producer;routing-processor;event1;event2;event3

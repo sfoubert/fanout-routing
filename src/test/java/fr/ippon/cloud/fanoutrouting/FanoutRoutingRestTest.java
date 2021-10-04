@@ -23,14 +23,14 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @AutoConfigureMockMvc
 public class FanoutRoutingRestTest {
 
-    private static final String OUTPUT_APP1_TOPIC = "app1_topic";
+    private static final String OUTPUT_EVENT1_TOPIC = "event1_topic";
 
     @Autowired
     protected MockMvc mockMvc;
 
     @ClassRule
     public static EmbeddedKafkaRule embeddedKafka = new EmbeddedKafkaRule(1, true,
-            OUTPUT_APP1_TOPIC);
+            OUTPUT_EVENT1_TOPIC);
 
     @BeforeClass
     public static void setup() {
@@ -42,7 +42,7 @@ public class FanoutRoutingRestTest {
                 .content(asJsonString(
                         NotificationEvent.builder()
                                 .id(0L)
-                                .app("app2")
+                                .type("event2")
                                 .action("object.created")
                                 .build()
                 ))

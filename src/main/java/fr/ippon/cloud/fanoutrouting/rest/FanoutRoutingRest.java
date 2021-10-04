@@ -18,6 +18,6 @@ public class FanoutRoutingRest {
     @PostMapping("/notification")
     public ResponseEntity notification(@Valid @RequestBody NotificationView notificationView) {
         notificationProducer.produce(notificationView.toEvent());
-        return ResponseEntity.ok("sent to " + notificationView.toEvent().getApp());
+        return ResponseEntity.ok("sent to " + notificationView.toEvent().getType());
     }
 }

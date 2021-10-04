@@ -19,7 +19,7 @@ public class NotificationEvent implements Serializable {
     private Long id;
 
     @NotBlank
-    private String app;
+    private String type;
 
     @NotBlank
     private String action;

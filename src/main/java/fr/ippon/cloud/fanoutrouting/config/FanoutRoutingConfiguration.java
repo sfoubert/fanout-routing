@@ -17,9 +17,9 @@ import java.util.function.Function;
 @Configuration
 class FanoutRoutingConfiguration {
 
-    private static final String APP_1 = "app1";
-    private static final String APP_2 = "app2";
-    private static final String APP_3 = "app3";
+    private static final String EVENT_1 = "event1";
+    private static final String EVENT_2 = "event2";
+    private static final String EVENT_3 = "event3";
 
     @Bean("notification-producer")
     NotificationProducer notificationProducer() {
@@ -29,26 +29,26 @@ class FanoutRoutingConfiguration {
     @Bean("routing-processor")
     public Function<KStream<String, NotificationEvent>, KStream<String, NotificationEvent>[]> routingProcessor() {
 
-        Predicate<String, NotificationEvent> isApp1 = (k, v) -> APP_1.equals(v.getApp());
-        Predicate<String, NotificationEvent> isApp2 = (k, v) -> APP_2.equals(v.getApp());
-        Predicate<String, NotificationEvent> isApp3 = (k, v) -> APP_3.equals(v.getApp());
-        Predicate<String, NotificationEvent> isAppUnknown = (k, v) -> !Arrays.asList(APP_1, APP_2, APP_3).contains(v.getApp());
+        Predicate<String, NotificationEvent> isEvent1 = (k, v) -> EVENT_1.equals(v.getType());
+        Predicate<String, NotificationEvent> isEvent2 = (k, v) -> EVENT_2.equals(v.getType());
+        Predicate<String, NotificationEvent> isEvent3 = (k, v) -> EVENT_3.equals(v.getType());
+        Predicate<String, NotificationEvent> isEventUnknown = (k, v) -> !Arrays.asList(EVENT_1, EVENT_2, EVENT_3).contains(v.getType());
 
-        return input -> input.branch(isApp1, isApp2, isApp3, isAppUnknown);
+        return input -> input.branch(isEvent1, isEvent2, isEvent3, isEventUnknown);
     }
 
     @Bean
-    public Consumer<NotificationEvent> app1() {
-        return data -> log.info("Data received from app-1... " + data.getAction());
+    public Consumer<NotificationEvent> event1() {
+        return data -> log.info("Data received from event-1... " + data.getAction());
     }
 
     @Bean
-    public Consumer<NotificationEvent> app2() {
-        return data -> log.info("Data received from app-2... " + data.getAction());
+    public Consumer<NotificationEvent> event2() {
+        return data -> log.info("Data received from event-2... " + data.getAction());
     }
 
     @Bean
-    public Consumer<NotificationEvent> app3() {
-        return data -> log.info("Data received from app-3... " + data.getAction());
+    public Consumer<NotificationEvent> event3() {
+        return data -> log.info("Data received from event-3... " + data.getAction());
     }
 }

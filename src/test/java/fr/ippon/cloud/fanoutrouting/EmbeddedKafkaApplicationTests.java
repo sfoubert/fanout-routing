@@ -35,9 +35,9 @@ public class EmbeddedKafkaApplicationTests {
 
     private static final String INPUT_TOPIC = "notification_topic";
 
-    private static final String OUTPUT_APP1_TOPIC = "app1_topic";
-    private static final String OUTPUT_APP2_TOPIC = "app2_topic";
-    private static final String OUTPUT_APP3_TOPIC = "app3_topic";
+    private static final String OUTPUT_EVENT1_TOPIC = "event1_topic";
+    private static final String OUTPUT_EVENT2_TOPIC = "event2_topic";
+    private static final String OUTPUT_EVENT3_TOPIC = "event3_topic";
 
     // name must be different than our app consumers
     private static final String GROUP1_NAME = "other_group1";
@@ -46,7 +46,7 @@ public class EmbeddedKafkaApplicationTests {
 
     @ClassRule
     public static EmbeddedKafkaRule embeddedKafka = new EmbeddedKafkaRule(1, true,
-            OUTPUT_APP1_TOPIC, OUTPUT_APP3_TOPIC, OUTPUT_APP3_TOPIC);
+            OUTPUT_EVENT1_TOPIC, OUTPUT_EVENT3_TOPIC, OUTPUT_EVENT3_TOPIC);
 
     @BeforeClass
     public static void setup() {
@@ -54,45 +54,45 @@ public class EmbeddedKafkaApplicationTests {
     }
 
     @Test
-    public void testSendReceiveApp1() {
+    public void testSendReceiveEvent1() {
         NotificationEvent event = NotificationEvent.builder()
                 .id(1L)
-                .app("app1")
+                .type("event1")
                 .action("object.created")
                 .build();
         sendMessage(event, INPUT_TOPIC);
 
-        ConsumerRecords<String, NotificationEvent> records = consumeMessage(OUTPUT_APP1_TOPIC, GROUP1_NAME);
+        ConsumerRecords<String, NotificationEvent> records = consumeMessage(OUTPUT_EVENT1_TOPIC, GROUP1_NAME);
 
         assertThat(records.count()).isEqualTo(1);
         assertThat(records.iterator().next().value()).isEqualTo(event);
     }
 
     @Test
-    public void testSendReceiveApp2() {
+    public void testSendReceiveEvent2() {
         NotificationEvent event = NotificationEvent.builder()
                 .id(2L)
-                .app("app2")
+                .type("event2")
                 .action("object.updated")
                 .build();
         sendMessage(event, INPUT_TOPIC);
 
-        ConsumerRecords<String, NotificationEvent> records = consumeMessage(OUTPUT_APP2_TOPIC, GROUP2_NAME);
+        ConsumerRecords<String, NotificationEvent> records = consumeMessage(OUTPUT_EVENT2_TOPIC, GROUP2_NAME);
 
         assertThat(records.count()).isEqualTo(1);
         assertThat(records.iterator().next().value()).isEqualTo(event);
     }
 
     @Test
-    public void testSendReceiveApp3() {
+    public void testSendReceiveEvent3() {
         NotificationEvent event = NotificationEvent.builder()
                 .id(3L)
-                .app("app3")
+                .type("event3")
                 .action("object.deleted")
                 .build();
         sendMessage(event, INPUT_TOPIC);
 
-        ConsumerRecords<String, NotificationEvent> records = consumeMessage(OUTPUT_APP3_TOPIC, GROUP3_NAME);
+        ConsumerRecords<String, NotificationEvent> records = consumeMessage(OUTPUT_EVENT3_TOPIC, GROUP3_NAME);
 
         assertThat(records.count()).isEqualTo(1);
         assertThat(records.iterator().next().value()).isEqualTo(event);

@@ -1,10 +1,11 @@
 # Implémentation du Fan-out Pattern avec Spring Cloud Stream et KafkaStreams.
 
 ## Besoin métier
-Un application externe envoie des notifications de type WebHook à travers notre API qui doit être en charge de dispatcher
-ces messages aux différentes applications internes de notre SI. Pour répondre à ce besoin, nous allons implémenter le 
-[Fan-out Pattern](https://en.wikipedia.org/wiki/Fan-out_(software)) avec Spring Cloud Stream en faisant transiter les messages à travers des topics Kafka. Notre
-API a l'avantage de répondre rapidement au WebHook du fait du caractère asynchrone.
+Une application externe envoie des notifications de type WebHook à travers notre API qui est responsable de distribuer 
+ces messages aux différentes applications internes de notre SI, en les répartissant dans des topics distincts.
+ Pour répondre à ce besoin, nous allons implémenter le [Fan-out Pattern](https://en.wikipedia.org/wiki/Fan-out_(software))
+avec Spring Cloud Stream en faisant transiter ces messages à travers des topics Kafka. Notre API a l’avantage de répondre
+rapidement au WebHook, étant donné que l’on ne fait que produire un message qui sera consommé de manière asynchrone.
 
 ## Fan-out pattern
 Le Fan-out pattern est un pattern de messaging bien connu dans les architectures event-driven.
@@ -79,9 +80,9 @@ public class MyNotificationProducer implements Supplier<Flux<Message<Notificatio
 - Function _routing-processor_ 
   - Utilise Kafka Stream pour router les messages à l'aide de .branch() et de prédicats.\
     La règle est la suivante : \
-    _si le message en entrée contient "app1", on route sur le topic app1_topic\
-    si le message en entrée contient "app2", on route sur le topic app2_topic\
-    si le message en entrée contient "app3", on route sur le topic app3_topic\
+    _si le message en entrée contient "event1", on route sur le topic event1_topic\
+    si le message en entrée contient "event2", on route sur le topic event2_topic\
+    si le message en entrée contient "event3", on route sur le topic event3_topic\
     sinon on route sur le topic notification_topic_dlq_
   - La méthode _branch()_ route vers les sorties multiples _out-0_, _out-1_, _out-2_ et _out-3_.
     D'autres méthodes de KStream permettent aussi de faire du _filter()_, _map()_, _flatMap()_, _groupBy()_.
@@ -91,21 +92,21 @@ public class MyNotificationProducer implements Supplier<Flux<Message<Notificatio
     @Bean("routing-processor")
     public Function<KStream<String, NotificationEvent>, KStream<String, NotificationEvent>[]> routingProcessor() {
 
-        Predicate<String, NotificationEvent> isApp1 = (k, v) -> APP_1.equals(v.getApp());
-        Predicate<String, NotificationEvent> isApp2 = (k, v) -> APP_2.equals(v.getApp());
-        Predicate<String, NotificationEvent> isApp3 = (k, v) -> APP_3.equals(v.getApp());
-        Predicate<String, NotificationEvent> isAppUnknown = (k, v) -> !Arrays.asList(APP_1, APP_2, APP_3).contains(v.getApp());
+        Predicate<String, NotificationEvent> isEvent1 = (k, v) -> EVENT_1.equals(v.getType());
+        Predicate<String, NotificationEvent> isEvent2 = (k, v) -> EVENT_2.equals(v.getType());
+        Predicate<String, NotificationEvent> isEvent3 = (k, v) -> EVENT_3.equals(v.getType());
+        Predicate<String, NotificationEvent> isEventUnknown = (k, v) -> !Arrays.asList(EVENT_1, EVENT_2, EVENT_3).contains(v.getType());
 
-        return input -> input.branch(isApp1, isApp2, isApp3, isAppUnknown);
+        return input -> input.branch(isEvent1, isEvent2, isEvent3, isEventUnknown);
     }
 ```
 - _Consumer_
-  - La fonction du consumer app1 est de consommer et logger le message dans le topic app1. De même pour les app2 et app3.\
+  - La fonction du consumer event1 est de consommer et logger le message dans le topic event1. De même pour les event2 et event3.\
 Ces 3 consommateurs sont dans le même projet mais pourraient être dans des projets Spring Boot séparées.
 ```java
     @Bean
-    public Consumer<NotificationEvent> app1() {
-        return data -> log.info("Data received from app-1... " + data.getAction());
+    public Consumer<NotificationEvent> event1() {
+        return data -> log.info("Data received from event-1... " + data.getAction());
     }
 ```
 - _application.yml_
@@ -126,15 +127,15 @@ spring:
       bindings:
         notification-producer-out-0.destination: notification_topic
         routing-processor-in-0.destination: notification_topic
-        routing-processor-out-0.destination: app1_topic
-        routing-processor-out-1.destination: app2_topic
-        routing-processor-out-2.destination: app3_topic
+        routing-processor-out-0.destination: event1_topic
+        routing-processor-out-1.destination: event2_topic
+        routing-processor-out-2.destination: event3_topic
         routing-processor-out-3.destination: notification_topic_dlq
-        app1-in-0.destination: app1_topic
-        app2-in-0.destination: app2_topic
-        app3-in-0.destination: app3_topic
+        event1-in-0.destination: event1_topic
+        event2-in-0.destination: event2_topic
+        event3-in-0.destination: event3_topic
     function:
-      definition: notification-producer;routing-processor;app1;app2;app3
+      definition: notification-producer;routing-processor;event1;event2;event3
 ```
 ## Démo du projet fanout-routing
 
@@ -150,11 +151,11 @@ Démarre l'application
 
 Envoi de notification sur notre endpoint en curl
 ```
- curl -i -X POST -H 'Content-Type: application/json' -d '{"id": 0,"app": "app1","action": "object.created"}' http://localhost:8080/notification
+ curl -i -X POST -H 'Content-Type: application/json' -d '{"id": 0,"type": "event1","action": "object.created"}' http://localhost:8080/notification
 ```
 
 Ou poster votre notification depuis Visual Studio\
-En essayant de changer dans la request l'application cible par _app1_ ou _app2_ ou _app3_
+En essayant de changer dans la request l'application cible par _event1_ ou _event2_ ou _event3_
 ![request](request.png)
 
 Visualiser les logs ou se connecter sur http://localhost:28080/ui pour voir les messages transiter dans les différents topics
